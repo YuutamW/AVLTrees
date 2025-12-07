@@ -47,7 +47,7 @@ private:
         Node *LeftSon;
         Node *RightSon;
         int Key;
-        __int8 BF;    //balanceFactor,int8 bcoz it will be a very small range(-2,-1,0,1,2), we dont need more than one byte of mem.
+        int BF;    //balanceFactor,int8 bcoz it will be a very small range(-2,-1,0,1,2), we dont need more than one byte of mem.
         Node(int k=0): LeftSon(nullptr),RightSon(nullptr),Key(k),BF(0) {}
     };
     Node *Root;
