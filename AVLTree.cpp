@@ -227,6 +227,163 @@ int AVLTree::balanceFactorOfNode(Node *root)
     return  getHeight(root->RightSon) - getHeight(root->LeftSon);
 }
 
+void AVLTree::fillInOrder(Node* node, int* arr, int& index)
+{
+    if (!node) return;
+    fillInOrder(node->LeftSon, arr, index);
+    arr[index++] = node->Key; // Visit Node
+    fillInOrder(node->RightSon, arr, index);
+}
+
+void AVLTree::fillPostOrder(Node* node, int* arr, int& index)
+{
+    if (!node) return;
+    fillPostOrder(node->LeftSon, arr, index);
+    fillPostOrder(node->RightSon, arr, index);
+    arr[index++] = node->Key; // Visit Node
+}
+void AVLTree::printTreeVisual(Node* node, int indent)
+{
+    if(node)
+    {
+        if(node->RightSon)
+        {
+            printTreeVisual(node->RightSon, indent + 4);
+        }
+        
+        if (indent > 0) std::cout << std::string(indent, ' ');
+        
+        // Print Key and Balance Factor. 
+        // Cast BF to int because __int8 usually prints as a char/symbol
+        std::cout << node->Key << " (" << (int)node->BF << ")\n";
+        
+        if(node->LeftSon)
+        {
+            printTreeVisual(node->LeftSon, indent + 4);
+        }
+    }
+}
+
+// Recursive Helper
+void AVLTree::deleteNodeHelper(Node *&node, int key, bool &shorter)
+{
+    // 1. Base Case: Not found
+    if (node == nullptr)
+    {
+        shorter = false;
+        return;
+    }
+
+    // 2. Search for the node
+    if (key < node->Key)
+    {
+        deleteNodeHelper(node->LeftSon, key, shorter);
+        
+        // BACKTRACKING: Left side might be shorter. 
+        // This is equivalent to adding to the Right side.
+        if (shorter)
+        {
+            switch (node->BF)
+            {
+            case -1: // Was Left heavy, deleted Left -> Now Balanced
+                node->BF = 0;
+                shorter = true; // Height decreased (H+1 -> H)
+                break;
+            case 0:  // Was Balanced, deleted Left -> Now Right heavy
+                node->BF = 1;
+                shorter = false; // Height remains H (absorbed)
+                break;
+            case 1:  // Was Right heavy, deleted Left -> Critical (+2)
+                // Use a temp var because your existing func uses 'taller' logic
+                bool isTaller = false; 
+                rightBalance(node, isTaller); // Fix right-heavy
+                // If rightBalance sets isTaller=false, it means height shrunk.
+                shorter = !isTaller; 
+                break;
+            }
+        }
+    }
+    else if (key > node->Key)
+    {
+        deleteNodeHelper(node->RightSon, key, shorter);
+
+        // BACKTRACKING: Right side might be shorter.
+        if (shorter)
+        {
+            switch (node->BF)
+            {
+            case 1:  // Was Right heavy, deleted Right -> Now Balanced
+                node->BF = 0;
+                shorter = true;
+                break;
+            case 0:  // Was Balanced, deleted Right -> Now Left heavy
+                node->BF = -1;
+                shorter = false; 
+                break;
+            case -1: // Was Left heavy, deleted Right -> Critical (-2)
+                bool isTaller = false;
+                leftBalance(node, isTaller);
+                shorter = !isTaller;
+                break;
+            }
+        }
+    }
+    else 
+    {
+        // 3. Node Found: Perform Deletion
+        
+        // Case: No children or One child
+        if (node->LeftSon == nullptr || node->RightSon == nullptr)
+        {
+            Node *temp = node->LeftSon ? node->LeftSon : node->RightSon;
+            
+            if (temp == nullptr) // No children
+            {
+                delete node;
+                node = nullptr;
+            }
+            else // One child
+            {
+                // Move the pointer 'node' to point to the child
+                Node* oldNode = node;
+                node = temp;
+                delete oldNode;
+            }
+            shorter = true; // We removed a node, so this subtree definitely shrank
+        }
+        else 
+        {
+            // Case: Two children
+            // Find Successor: Smallest node in Right Subtree
+            Node *successor = node->RightSon;
+            while (successor->LeftSon != nullptr)
+                successor = successor->LeftSon;
+
+            // Copy value
+            node->Key = successor->Key;
+
+            // Recursively delete the successor from the Right Subtree
+            // (Pass successor->Key, not key)
+            deleteNodeHelper(node->RightSon, successor->Key, shorter);
+
+            // Handle rebalancing (Same as "deleted from Right" logic above)
+            if (shorter)
+            {
+                switch (node->BF)
+                {
+                case 1:  node->BF = 0;  shorter = true; break;
+                case 0:  node->BF = -1; shorter = false; break;
+                case -1: 
+                    bool isTaller = false;
+                    leftBalance(node, isTaller);
+                    shorter = !isTaller;
+                    break;
+                }
+            }
+        }
+    }
+}
+
 #pragma endregion
 
 #pragma region public funcs
@@ -260,10 +417,32 @@ int AVLTree::balanceFactorOfNode(Node *root)
 
     void AVLTree::deleteNode(int key)
     {
+        bool shorter = false;
+        deleteNodeHelper(Root, key, shorter);
     }
 
     void AVLTree::printTree()
     {
+        if (!Root)
+        {
+            std::cout << "Tree is empty.\n";
+            return;
+        }
+
+        // 1. Calculate Size (needed for array allocation)
+        // Note: You can add a 'count' member variable to your class to avoid this calc
+        int n = 0;
+        // Simple way to get size if you don't have a 'count' variable:
+        // Helper lambda or function to count nodes. 
+        // For now, let's assume you add a 'int count' to your class or use a large buffer.
+        // Ideally: int n = this->nodeCount; 
+    
+        // For demonstration, let's just use the Visual Print directly:
+        std::cout << "=== AVL Tree Structure (Sideways) ===\n";
+        std::cout << "[Key (BalanceFactor)]\n\n";
+        printTreeVisual(Root, 0);
+        std::cout << "\n=====================================\n";
     }
+    
 
 #pragma endregion

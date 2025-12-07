@@ -65,15 +65,20 @@ private:
     
     void destroyTree(Node *root);
     int* getArrOfKeys();
-    // Node& createNode(Node *LS=nullptr, Node *RS=nullptr,int K = 0, __int8 = 0);
-    std::string tree2String(int *arrOfKeysInOrder , int *arrOfKeysPostOrder);
     void addNodeToTree(Node *&root, int key ,bool &taller);
     void removeNodeFromTree();
 
     int getHeight(Node *node);
     int balanceFactorOfNode(Node* root);
     inline int getBF(Node *root) { return (root) ? root->BF : 0 ;}
+    // Helpers to fill arrays
+    void fillInOrder(Node* node, int* arr, int& index);
+    void fillPostOrder(Node* node, int* arr, int& index);
     
+    // Helper for visual printing
+    void printTreeVisual(Node* node, int indent);
+
+    void deleteNodeHelper(Node *&node, int key, bool &shorter);
 public:
     AVLTree();
     AVLTree(int k);
