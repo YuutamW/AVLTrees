@@ -53,23 +53,27 @@ private:
     Node *Root;
     int height = -1;
     //rightBalance: Balance tree/subtree given to Right
-    Node& rightBalance(Node*& node, bool &taller); 
+    void rightBalance(Node*& node, bool &taller); 
     //leftBalance: Balance tree/subtree given to Left
-    Node& leftBalance(Node*& node, bool &taller); 
+    void leftBalance(Node*& node, bool &taller); 
     //rotateRight: Rotate given tree/subtree to the right
-    Node& rotateRight(Node*& node);
+    void rotateRight(Node*& node);
     //rotateLeft: Rotate given tree/subtree to the left
-     Node& rotateLeft(Node*& node);
+    void rotateLeft(Node*& node);
 
     /*private helpers:*/
     
     void destroyTree(Node *root);
     int* getArrOfKeys();
     // Node& createNode(Node *LS=nullptr, Node *RS=nullptr,int K = 0, __int8 = 0);
-    std::string tree2String(int *arrOfKeys );
-    void addNodeToTree(Node *&root, int key ,bool taller);
+    std::string tree2String(int *arrOfKeysInOrder , int *arrOfKeysPostOrder);
+    void addNodeToTree(Node *&root, int key ,bool &taller);
     void removeNodeFromTree();
 
+    int getHeight(Node *node);
+    int balanceFactorOfNode(Node* root);
+    inline int getBF(Node *root) { return (root) ? root->BF : 0 ;}
+    
 public:
     AVLTree();
     AVLTree(int k);
